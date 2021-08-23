@@ -1,7 +1,9 @@
 from __future__ import print_function
+from skimage.metrics import structural_similarity as compare_ssim
 import cv2
 import numpy as np
 import imutils
+import math
 
 
 MAX_FEATURES = 500
@@ -78,10 +80,10 @@ def getTargetImage(imageName):
     height = target.shape[0]
     width = target.shape[1]
     adjust = 5
-    half = int(width/7.5*0.4) - adjust
-    endHalf = int(width-(width/7.5*0.4)) + adjust
+    half = int(width/5.5*0.2) - adjust
+    endHalf = int(width-(width/5.5*0.2)) + adjust
     cropped_target = target[half:endHalf, half:endHalf]
-    cv2.imshow('cropped_target', cropped_target)
+    # cv2.imshow('cropped_target', cropped_target)
     return cropped_target
 
 def findContourCentre(contour):
@@ -95,40 +97,81 @@ def findContourCentre(contour):
     #     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
     return (cX, cY)
 
+# def drawCentre()
+
+def getImgDiff(original_img, new_img):
+    # compute the Structural Similarity Index (SSIM) between the two
+    # images, ensuring that the difference image is returned
+    (score, diff) = compare_ssim(original_img, new_img, full=True)
+    diff = (diff * 255).astype("uint8")
+    print("SSIM: {}".format(score))
+    # threshold the difference image, followed by finding contours to
+    # obtain the regions of the two input images that differ
+    thresh = cv2.threshold(diff, 0, 255,
+        cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    contours = getContours(thresh.copy())
+    contours[:] = [x for x in contours if cv2.contourArea(x) <= 1000]
+    
+    (avgX, avgY) = (0, 0)
+    for c in contours:
+        (cX, cY) = findContourCentre(c)
+        avgX = avgX + cX
+        avgY = avgY + cY
+
+    avgX = int(avgX / len(contours))
+    avgY = int(avgY / len(contours))
+
+    # cnts = imutils.grab_contours(cnts)
+    # cv2.imshow("Thresh", thresh)
+    return contours, (avgX, avgY)
+
+def singleTargetSystem(contours):
+    return 0
+
+def fiveTargetSystem(contours):
+    return 0
+
+def calculateDistance(x1,y1,x2,y2):
+    dist = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    return dist
+
 if __name__ == '__main__':
 
-    # # Read reference image
-    # refFilename = "test_target.tiff"
-    # # refFilename = "ref_target_red.jpg"
-    # print("Reading reference image : ", refFilename)
-    # imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
+    # Read reference image
+    refFilename = "target_ref.jpg"
+    # refFilename = "ref_target_red.jpg"
+    print("Reading reference image : ", refFilename)
+    imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
 
-    # # Read image to be aligned
-    # imFilename = "target_red_test1.JPG"
-    # # imFilename = "target_red_2.JPG"
-    # print("Reading image to align : ", imFilename)
-    # im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
+    # Read image to be aligned
+    imFilename = "IMG_2748.jpg"
+    # imFilename = "target_red_2.JPG"
+    print("Reading image to align : ", imFilename)
+    im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
 
-    # print("Aligning images ...")
-    # # Registered image will be resotred in imReg.
-    # # The estimated homography will be stored in h.
-    # imReg, h = alignImages(im, imReference)
+    print("Aligning images ...")
+    # Registered image will be resotred in imReg.
+    # The estimated homography will be stored in h.
+    imReg, h = alignImages(im, imReference)
 
-    # # Write aligned image to disk.
-    # outFilename = "aligned.jpeg"
-    # print("Saving aligned image : ", outFilename)
-    # cv2.imwrite(outFilename, imReg)
-    # cv2.imshow('aligned', imReg)
+    # Write aligned image to disk.
+    outFilename = "aligned.jpeg"
+    print("Saving aligned image : ", outFilename)
+    cv2.imwrite(outFilename, imReg)
+    cv2.imshow('aligned', imReg)
 
-    # # Print estimated homography
-    # print("Estimated homography : \n",  h)
+    # Print estimated homography
+    print("Estimated homography : \n",  h)
 
-    # imRegGray = cv2.cvtColor(imReg, cv2.COLOR_BGR2GRAY)
-    # cv2.imshow('grey', imRegGray)
+    imRegGray = cv2.cvtColor(imReg, cv2.COLOR_BGR2GRAY)
+    cv2.imshow('grey', imRegGray)
 
     # detecting contours
 
-    target = getTargetImage('test_target.png')
+    target = getTargetImage('test_target_14_original.png')
+    newTarget = getTargetImage('test_target_14_new.png')
+
+    shotContours, (shotX, shotY) = getImgDiff(target, newTarget)
     # cropped_test_target = test_target
     # cropped_test_target = test_target[230:230+1700, 230:230+1700]
     # cropped_test_target = cv2.blur(cropped_test_target, (3,3))
@@ -138,28 +181,51 @@ if __name__ == '__main__':
     # cv2.imshow('thresholded_test_target', cropped_th_test_target)
     contours = getContours(th_target)
     cv2.drawContours(background, contours, -1, (255, 255, 255), 1)
+    cv2.drawContours(background, shotContours, -1, (255, 255, 0), 1)
     cv2.imshow('cropped_thresholded_test_target', background)
 
-    print("Areas found: ", findContourArea(contours))
-    print("Contours found: ", len(contours))
+    # print("Areas found: ", findContourArea(contours))
+    # print("Contours found: ", len(contours))
 
     sortedByCourtourArea = sorted(contours, key=cv2.contourArea)
-    print("Sorted Areas: ", findContourArea(sortedByCourtourArea))
-    sortedByCourtourArea[:] = [x for x in sortedByCourtourArea if cv2.contourArea(x) <= 7800]
-    
-    # loop over the contours
-    for c in sortedByCourtourArea:
-        # compute the center of the contour
-        (cX, cY) = findContourCentre(c)
-        # draw the contour and center of the shape on the image
-        # cv2.drawContours(background, [c], -1, (0, 255, 0), 1.5)
-        cv2.circle(background, (cX, cY), 3, (0, 255, 0), -1)
-        cv2.putText(background, "center ({},{}) Area={}".format(cX, cY, cv2.contourArea(c)), (cX + 20, cY),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-        # show the image
-        cv2.imshow("Image", background)
-        # cv2.waitKey(0)
+    # print("Sorted Areas: ", findContourArea(sortedByCourtourArea))
 
+    targetOuterContour = sortedByCourtourArea[len(sortedByCourtourArea)-1]
+
+    (centreX, centreY) = findContourCentre(targetOuterContour)
+    cv2.circle(background, (centreX, centreY), 3, (0, 255, 0), -1)
+    cv2.putText(background, "center ({},{}) Area={}".format(centreX, centreY, cv2.contourArea(targetOuterContour)), (centreX + 20, centreY),
+        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    # show the image
+    cv2.imshow("Image", background)
+    # cv2.waitKey(0)
+    
+    cv2.circle(background, (shotX, shotY), 3, (0, 255, 0), -1)
+    cv2.putText(background, "centre: ({}, {})".format(shotX, shotY), (shotX + 20, shotY),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    # loop over the contours
+    # for shotContour in shotContours:
+    #     # draw the contour and center of the shape on the image
+    #     # cv2.drawContours(background, [c], -1, (0, 255, 0), 1.5)
+    #     cv2.putText(background, "Area={}".format(cv2.contourArea(shotContour)), (shotX + 20, shotY),
+    #     #     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
+    
+    # show the image
+    # cv2.waitKey(0)
+
+    distance = calculateDistance(centreX, centreY, shotX, shotY)
+    print("shot distance: ", distance)
+
+    circleDistance = cv2.pointPolygonTest(targetOuterContour, (centreX, centreY), True)/10
+    print("circle distance: ", circleDistance)
+
+    score = float("{:.1f}".format(11 - round((distance/circleDistance), 1)))
+    print("final score: ", score)
+
+    cv2.putText(background, "Score: {}".format(score), (50, 150),
+        cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 255, 0), 7)
+
+    cv2.imshow("combined_result", background)
 
     # test_target = cv2.imread('test_target.png', cv2.IMREAD_GRAYSCALE)
     # cropped_test_target = test_target[130:170+782, 130:170+782]
