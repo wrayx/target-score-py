@@ -80,16 +80,23 @@ def getTargetImage(imageName):
     height = target.shape[0]
     width = target.shape[1]
     adjust = 5
-    half = int(width/5.5*0.2) - adjust
-    endHalf = int(width-(width/5.5*0.2)) + adjust
+    half = int(width/5.5*0.25) - adjust
+    endHalf = int(width-(width/5.5*0.25)) + adjust
     cropped_target = target[half:endHalf, half:endHalf]
     # cv2.imshow('cropped_target', cropped_target)
     return cropped_target
 
 def findContourCentre(contour):
     M = cv2.moments(contour)
+
+    if (M["m00"] == 0):
+        return (0, 0)
+
     cX = int(M["m10"] / M["m00"])
     cY = int(M["m01"] / M["m00"])
+
+    # if cv2.pointPolygonTest(contour, (cX, cY), True) < 400:
+    #     return (0, 0)
     # draw the contour and center of the shape on the image
     # cv2.drawContours(background, [c], -1, (0, 255, 0), 1.5)
     # cv2.circle(background, (cX, cY), 3, (0, 255, 0), -1)
@@ -100,21 +107,48 @@ def findContourCentre(contour):
 # def drawCentre()
 
 def getImgDiff(original_img, new_img):
-    # compute the Structural Similarity Index (SSIM) between the two
-    # images, ensuring that the difference image is returned
-    (score, diff) = compare_ssim(original_img, new_img, full=True)
-    diff = (diff * 255).astype("uint8")
-    print("SSIM: {}".format(score))
+    # original_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
+    # new_img = cv2.cvtColor(new_img, cv2.COLOR_BGR2GRAY)
+
+    background1 = np.zeros((original_img.shape[0], original_img.shape[1], 3))
+    background2 = np.zeros((new_img.shape[0], new_img.shape[1], 3))
+
+    # original_img = cv2.GaussianBlur(original_img,(15,15),0)
+    original_img = cv2.medianBlur(original_img, 11)
+    th_original = cv2.threshold(original_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    contours = getContours(th_original)
+    cv2.drawContours(background1, contours, -1, (255, 255, 255), 1)
+    
+    cv2.imshow('median_blurred_original', original_img)
+    cv2.imshow('thresholded_original', th_original)
+
+    # new_img = cv2.GaussianBlur(new_img,(15,15),0)
+    # ret, th_new = cv2.threshold(new_img, 190, 255, cv2.THRESH_BINARY)
+    new_img = cv2.medianBlur(new_img, 11)
+    th_new = cv2.threshold(new_img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    contours = getContours(th_new)
+    cv2.drawContours(background2, contours, -1, (255, 255, 255), 1)
+
+    cv2.imshow('median_blurred_original', new_img)
+    cv2.imshow('thresholded_new', th_new)
+
+    # # compute the Structural Similarity Index (SSIM) between the two
+    # # images, ensuring that the difference image is returned
+    # (score, diff) = compare_ssim(th_original, th_new,gaussian_weights=True, full=True)
+    # diff = (diff * 255).astype("uint8")
+    # print("SSIM: {}".format(score))
+    diff = cv2.absdiff(cv2.GaussianBlur(th_original,(25,25),0), cv2.GaussianBlur(th_new,(25,25),0))
     # threshold the difference image, followed by finding contours to
     # obtain the regions of the two input images that differ
     thresh = cv2.threshold(diff, 0, 255,
         cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
     contours = getContours(thresh.copy())
-    contours[:] = [x for x in contours if cv2.contourArea(x) <= 1000]
+    contours[:] = [x for x in contours if cv2.contourArea(x) < 5000]
     
     (avgX, avgY) = (0, 0)
     for c in contours:
         (cX, cY) = findContourCentre(c)
+
         avgX = avgX + cX
         avgY = avgY + cY
 
@@ -122,7 +156,7 @@ def getImgDiff(original_img, new_img):
     avgY = int(avgY / len(contours))
 
     # cnts = imutils.grab_contours(cnts)
-    # cv2.imshow("Thresh", thresh)
+    cv2.imshow("Thresh", thresh)
     return contours, (avgX, avgY)
 
 def singleTargetSystem(contours):
@@ -138,13 +172,13 @@ def calculateDistance(x1,y1,x2,y2):
 if __name__ == '__main__':
 
     # Read reference image
-    refFilename = "target_ref.jpg"
+    refFilename = "test_img/IMG_ref.jpg"
     # refFilename = "ref_target_red.jpg"
     print("Reading reference image : ", refFilename)
     imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
 
     # Read image to be aligned
-    imFilename = "IMG_2748.jpg"
+    imFilename = "test_img/IMG_1.jpg"
     # imFilename = "target_red_2.JPG"
     print("Reading image to align : ", imFilename)
     im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
@@ -155,7 +189,7 @@ if __name__ == '__main__':
     imReg, h = alignImages(im, imReference)
 
     # Write aligned image to disk.
-    outFilename = "aligned.jpeg"
+    outFilename = "test_img/aligned.jpg"
     print("Saving aligned image : ", outFilename)
     cv2.imwrite(outFilename, imReg)
     cv2.imshow('aligned', imReg)
@@ -163,21 +197,47 @@ if __name__ == '__main__':
     # Print estimated homography
     print("Estimated homography : \n",  h)
 
-    imRegGray = cv2.cvtColor(imReg, cv2.COLOR_BGR2GRAY)
-    cv2.imshow('grey', imRegGray)
+    # imRegGray = cv2.cvtColor(imReg, cv2.COLOR_BGR2GRAY)
+    cv2.imshow('grey', imReg)
 
     # detecting contours
 
-    target = getTargetImage('test_target_14_original.png')
-    newTarget = getTargetImage('test_target_14_new.png')
+    # target = cv2.cvtColor(getTargetImage('test_img/IMG_ref.jpg'), cv2.COLOR_BGR2GRAY)
+    # newTarget = cv2.cvtColor(getTargetImage('test_img/aligned.jpg'), cv2.COLOR_BGR2GRAY)
+    target = getTargetImage('test_img/IMG_ref.jpg')
+    newTarget = getTargetImage('test_img/aligned.jpg')
+    (centreX, centreY) = (0,0)
+
+    target_circle = target.copy()
+
+    gray_blurred = cv2.blur(target_circle, (3, 3))
+  
+    # Apply Hough transform on the blurred image.
+    detected_circles = cv2.HoughCircles(gray_blurred, 
+                    cv2.HOUGH_GRADIENT, 1, 20, param1 = 50,
+                param2 = 30, minRadius = 10, maxRadius = 40)
+
+    # Draw circles that are detected.
+    if detected_circles is not None:
+    
+        # Convert the circle parameters a, b and r to integers.
+        detected_circles = np.uint16(np.around(detected_circles))
+    
+        for pt in detected_circles[0, :]:
+            a, b, r = pt[0], pt[1], pt[2]
+            (centreX, centreY) = (a, b)
+    
+            # Draw the circumference of the circle.
+            cv2.circle(target_circle, (a, b), r, (0, 255, 0), 2)
+            # Draw a small circle (of radius 1) to show the center.
+            cv2.circle(target_circle, (a, b), 1, (0, 0, 255), 3)
+            cv2.imshow("Detected Circle", target_circle)
 
     shotContours, (shotX, shotY) = getImgDiff(target, newTarget)
-    # cropped_test_target = test_target
-    # cropped_test_target = test_target[230:230+1700, 230:230+1700]
-    # cropped_test_target = cv2.blur(cropped_test_target, (3,3))
+
+    target = cv2.GaussianBlur(target,(5,5),0)
     background = np.zeros((target.shape[0], target.shape[1], 3))
-    # canny_edged_img = cv2.Canny(cropped_test_target, 100, 250)
-    ret, th_target = cv2.threshold(target, 120, 255, cv2.THRESH_BINARY)
+    ret, th_target = cv2.threshold(target, 200, 255, cv2.THRESH_BINARY)
     # cv2.imshow('thresholded_test_target', cropped_th_test_target)
     contours = getContours(th_target)
     cv2.drawContours(background, contours, -1, (255, 255, 255), 1)
@@ -192,7 +252,7 @@ if __name__ == '__main__':
 
     targetOuterContour = sortedByCourtourArea[len(sortedByCourtourArea)-1]
 
-    (centreX, centreY) = findContourCentre(targetOuterContour)
+    # (centreX, centreY) = findContourCentre(targetOuterContour)
     cv2.circle(background, (centreX, centreY), 3, (0, 255, 0), -1)
     cv2.putText(background, "center ({},{}) Area={}".format(centreX, centreY, cv2.contourArea(targetOuterContour)), (centreX + 20, centreY),
         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -226,6 +286,14 @@ if __name__ == '__main__':
         cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 255, 0), 7)
 
     cv2.imshow("combined_result", background)
+
+
+
+
+
+
+
+
 
     # test_target = cv2.imread('test_target.png', cv2.IMREAD_GRAYSCALE)
     # cropped_test_target = test_target[130:170+782, 130:170+782]
