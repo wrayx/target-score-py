@@ -8,20 +8,20 @@ import math
 
 green = (69, 255, 83)
 lightGreen = (204, 255, 204)
-grey = (64, 64, 64)
+grey = (110, 110, 110)
 red = (67, 57, 249)
 DARKRED = (0, 0, 255)
 DARKGREEN = (28, 168, 23)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-backgroundColor = (32, 32, 32)
+BACKGROUNDCOLOR = (32, 32, 32)
 
 shotNum = sys.argv[1]
 
-targetFileName = 'test_img_2/aligned_shot_{}.JPG'.format(int(shotNum)-1)
-nextTargetFileName = 'test_img_2/aligned_shot_{}.JPG'.format(shotNum)
+targetFileName = 'test_img_3/aligned_shot_{}.JPG'.format(int(shotNum)-1)
+nextTargetFileName = 'test_img_3/aligned_shot_{}.JPG'.format(shotNum)
 
-targetTemplateFileName = 'test_img_2/aligned_shot_0.JPG'
+targetTemplateFileName = 'test_img_3/aligned_shot_0.JPG'
 
 # targetFileName = 'test_img/IMG_ref.JPG'
 # nextTargetFileName = 'test_img/aligned.JPG'
@@ -99,9 +99,9 @@ def findContourCentre(contour):
 def getShotContour(original_img, new_img):
 
     background1 = np.full(
-        (original_img.shape[0], original_img.shape[1], 3), backgroundColor, np.uint8)
+        (original_img.shape[0], original_img.shape[1], 3), BACKGROUNDCOLOR, np.uint8)
     background2 = np.full(
-        (new_img.shape[0], new_img.shape[1], 3), backgroundColor, np.uint8)
+        (new_img.shape[0], new_img.shape[1], 3), BACKGROUNDCOLOR, np.uint8)
 
     original_img = cv2.medianBlur(original_img, 15)
     th_original = cv2.threshold(original_img, 150, 255, cv2.THRESH_BINARY)[1]
@@ -200,6 +200,15 @@ def drawTarget(background, centreX, centreY, circleRadiuses, color=BLACK):
             cv2.putText(background, str(i+1), (centreX-radius +
                         20, centreY+10), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
 
+def change_brightness(img, value=30):
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+    v = cv2.add(v,value)
+    v[v > 255] = 255
+    v[v < 0] = 0
+    final_hsv = cv2.merge((h, s, v))
+    img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+    return img
 
 if __name__ == '__main__':
 
@@ -212,7 +221,7 @@ if __name__ == '__main__':
     targetTemplate = getTargetImageInGrey(targetTemplateFileName)
     # targetTemplate = cv2.GaussianBlur(target, (15, 15), 0)
     # setting threshold of gray image
-    _, threshold = cv2.threshold(targetTemplate, 150, 200, cv2.THRESH_BINARY_INV)
+    _, threshold = cv2.threshold(targetTemplate, 210, 255, cv2.THRESH_BINARY_INV)
     # using a findContours() function
     contours, _ = cv2.findContours(
         threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -286,15 +295,22 @@ if __name__ == '__main__':
     numpy_horizontal = np.hstack((th_target, th_next_target))
     cv2.imshow("Threshold Images", numpy_horizontal)
 
+    cv2.putText(nextTarget, "'CROPPED IMG'", (50, 80),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLACK, 5)
+    cv2.putText(th_next_target, "'THRESHOLD IMG'", (50, 80),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLACK, 5)
+    numpy_horizontal = np.hstack((nextTarget, th_next_target))
+    cv2.imshow("Original Images", numpy_horizontal)
+
     background = np.full(
-        (target.shape[0], target.shape[1], 3), backgroundColor, np.uint8)
+        (target.shape[0], target.shape[1], 3), BACKGROUNDCOLOR, np.uint8)
 
     contours = getContours(th_target)
     cv2.circle(background, (centreX, centreY), 5, grey, -1)
     cv2.drawContours(background, contours, -1, grey, 2)
     cv2.drawContours(background, shotContours, -1, green, -1)
     cv2.circle(background, (shotX, shotY), 15, red, -1)
-    cv2.circle(background, (shotX, shotY), 3, backgroundColor, -1)
+    cv2.circle(background, (shotX, shotY), 3, BACKGROUNDCOLOR, -1)
     cv2.putText(background, "SHOT LOCATION: ({}, {})".format(shotX, shotY), (shotX + 50, shotY),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, red, 2)
 
@@ -341,24 +357,26 @@ if __name__ == '__main__':
     # ============================= Drawing =============================
 
     displayTarget = np.full(
-        (target.shape[0], target.shape[1], 3), WHITE, np.uint8)
+        (target.shape[0], target.shape[1], 3), BACKGROUNDCOLOR, np.uint8)
 
-    drawTarget(displayTarget, centreX, centreY, circleRadiuses)
+    drawTarget(displayTarget, centreX, centreY, circleRadiuses, grey)
 
-    cv2.circle(displayTarget, (shotX, shotY), 20, DARKRED, -1)
+    cv2.circle(displayTarget, (shotX, shotY), 20, red, -1)
     cv2.circle(displayTarget, (shotX, shotY), 4, BLACK, -1)
 
     cv2.putText(displayTarget, "LOCATION: ({},{})".format(shotX, shotY), (shotX + 50, shotY),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, DARKRED, 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 1, red, 3)
 
     cv2.putText(displayTarget, "SCORE: {}".format(score), (50, 100),
-                cv2.FONT_HERSHEY_SIMPLEX, 2, DARKGREEN, 6)
+                cv2.FONT_HERSHEY_SIMPLEX, 2, green, 6)
 
-    photo = getTargetImage(nextTargetFileName)
+    photo = change_brightness(getTargetImage(nextTargetFileName), -30)
     drawTarget(photo, centreX, centreY, circleRadiuses, red)
     cv2.circle(photo, (shotX, shotY), 8, green, -1)
     cv2.putText(photo, "LOCATION: ({},{})".format(shotX, shotY), (shotX + 50, shotY),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, green, 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 1, green, 3)
+    cv2.putText(photo, "'MAPPING'", (50, 80),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLACK, 5)
 
     numpy_horizontal = np.hstack((photo, displayTarget))
     cv2.imshow("Display", numpy_horizontal)
