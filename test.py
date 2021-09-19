@@ -18,10 +18,10 @@ BACKGROUNDCOLOR = (32, 32, 32)
 
 shotNum = sys.argv[1]
 
-targetFileName = 'test_img_3/aligned_shot_{}.JPG'.format(int(shotNum)-1)
-nextTargetFileName = 'test_img_3/aligned_shot_{}.JPG'.format(shotNum)
+targetFileName = 'test_img_6/aligned_shot_{}.JPG'.format(int(shotNum)-1)
+nextTargetFileName = 'test_img_6/aligned_shot_{}.JPG'.format(shotNum)
 
-targetTemplateFileName = 'test_img_3/aligned_shot_0.JPG'
+targetTemplateFileName = 'test_img_6/aligned_shot_0.JPG'
 
 # targetFileName = 'test_img/IMG_ref.JPG'
 # nextTargetFileName = 'test_img/aligned.JPG'
@@ -125,9 +125,10 @@ def getShotContour(original_img, new_img):
     # obtain the regions of the two input images that differ
     thresh = cv2.threshold(diff, 0, 255,
                            cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    contours = getContours(thresh.copy())
-    contours[:] = [x for x in contours if cv2.contourArea(x) < 7000]
-
+    contours = getContours(thresh.copy())    
+    print('shot contours: ', findContourArea(contours))
+    contours[:] = [x for x in contours if cv2.contourArea(x) < 10000 and cv2.contourArea(x) > 500]
+    print('shot contours: ', findContourArea(contours))
     (avgX, avgY) = (0, 0)
     for c in contours:
         (cX, cY) = findContourCentre(c)
@@ -221,7 +222,7 @@ if __name__ == '__main__':
     targetTemplate = getTargetImageInGrey(targetTemplateFileName)
     # targetTemplate = cv2.GaussianBlur(target, (15, 15), 0)
     # setting threshold of gray image
-    _, threshold = cv2.threshold(targetTemplate, 210, 255, cv2.THRESH_BINARY_INV)
+    _, threshold = cv2.threshold(targetTemplate, 220, 255, cv2.THRESH_BINARY_INV)
     # using a findContours() function
     contours, _ = cv2.findContours(
         threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -329,8 +330,13 @@ if __name__ == '__main__':
         if distance <= circleRadiuses[i] and distance > circleRadiuses[i+1]:
             score = i+1
             smallScore = 1-((distance - circleRadiuses[i+1])/(circleRadiuses[i]-circleRadiuses[i+1]))
-            score = float("{:.1f}".format(score + (smallScore)))
 
+            score = score + (smallScore)
+            
+            if score > 10:
+                score = float("{:.1f}".format(10 + ((score-10)/2)))
+            else:
+                score = float("{:.1f}".format(score))
 
     # if score < 10:
     #     score = float("{:.1f}".format(11 - round((distance/circleDistance), 0)))
@@ -380,12 +386,6 @@ if __name__ == '__main__':
 
     numpy_horizontal = np.hstack((photo, displayTarget))
     cv2.imshow("Display", numpy_horizontal)
-
-    # digitalPhoto = getTargetImage("test_img_2/DIGITAL.jpg")
-    # drawTarget(digitalPhoto, centreX, centreY, circleRadiuses)
-    # numpy_horizontal = np.hstack((cv2.resize(
-    #     digitalPhoto, (displayTarget.shape[0], displayTarget.shape[0])), displayTarget))
-    # cv2.imshow("Display digital", numpy_horizontal)
 
     # ===================================================================
 

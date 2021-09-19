@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 # reading image
 shotNum = sys.argv[1]
 
-sourceImage = cv2.imread('test_img_3/shot_{}.JPG'.format(shotNum))
+sourceImage = cv2.imread('test_img_6/shot_{}.JPG'.format(shotNum))
 sourceImageCopy = sourceImage.copy()
 
 sourceImage = cv2.GaussianBlur(sourceImage, (5, 5), 0)
@@ -62,7 +62,7 @@ for contour in contours:
 squareContoursWithCorners.sort(key=lambda x: cv2.contourArea(x[0]), reverse=True)
 squareContours = sorted(squareContours, key=cv2.contourArea, reverse=True)
 
-cv2.drawContours(sourceImage, squareContours, 0, (0, 0, 255), 7)
+cv2.drawContours(sourceImage, squareContours, 1, (0, 0, 255), 7)
 
 
 # displaying the image after drawing contours
@@ -70,8 +70,8 @@ cv2.imshow('shapes', sourceImage)
 
 
 width, height = 1500, 1500
-sourceCorners = np.array([squareContoursWithCorners[0][1][0][0],squareContoursWithCorners[0][1][1][0], squareContoursWithCorners[0][1][2][0], squareContoursWithCorners[0][1][3][0]])
-targetCorners = np.array([(width,0),(0,0),(0,height),(width,height)])
+sourceCorners = np.array([squareContoursWithCorners[1][1][0][0],squareContoursWithCorners[1][1][1][0], squareContoursWithCorners[1][1][2][0], squareContoursWithCorners[1][1][3][0]])
+targetCorners = np.array([(0,0),(0,height),(width,height),(width,0)])
 
 print(sourceCorners)
 print(targetCorners)
@@ -83,7 +83,7 @@ transformed_image = cv2.warpPerspective(
     sourceImageCopy, H, (height, width))
 
 
-cv2.imwrite("test_img_3/aligned_shot_{}.JPG".format(shotNum), transformed_image)
+cv2.imwrite("test_img_6/aligned_shot_{}.JPG".format(shotNum), transformed_image)
 cv2.imshow('Aligned Image', transformed_image)
 
 cv2.waitKey(0)
