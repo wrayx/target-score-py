@@ -20,12 +20,13 @@ imutils                           0.5.4
 ```
 
 ### Scripts
+- `\board_design`: custom target boards that were designed for the detecting system.
+- `\targetsys`: virtualenv
+- `\test_img_*`: images taken by the camera when the player take a new shot, `shot_0.JPG` is an image with the board that has no shot, `shot_1.JPG` is an image with the board that has 1 shot etc.
 - `alignByRefImg.py`: detecting and extract target board by its geometric shape.
 - `alignBySquares.py`: detecting and extract target board by ORB (oriented BRIEF) features and interest points.
 - `sound.py`: take photo and save it to file when the sound from microphone hit a certain threshold. The threshold was set based on multiple experiments with sounds of rifle and surrounding environment.
 - `score.py`: take extracted target board image as an input then detect the shot location and calculat the final score.
-- `\targetsys`: virtualenv
-- `\board_design`: custom target boards designed for the detecting system
 
 ### Detecting the target board by geometric shapes
 ![detecting shapes][shapes]
