@@ -20,13 +20,13 @@ imutils                           0.5.4
 ```
 
 ### Scripts
-- `\board_design`: custom target boards that were designed for the detecting system.
+- `\board_design`: custom target boards created for the detection system.
 - `\targetsys`: virtualenv
-- `\test_img_*`: images taken by the camera when the player take a new shot, `shot_0.JPG` is an image with the board that has no shot, `shot_1.JPG` is an image with the board that has 1 shot etc.
-- `alignByRefImg.py`: detecting and extract target board by its geometric shape.
-- `alignBySquares.py`: detecting and extract target board by ORB (oriented BRIEF) features and interest points.
-- `sound.py`: take photo and save it to file when the sound from microphone hit a certain threshold. The threshold was set based on multiple experiments with sounds of rifle and surrounding environment.
-- `score.py`: take extracted target board image as an input then detect the shot location and calculat the final score.
+- `\test_img_*`: images taken by the camera when the player takes a shot. `shot_0.JPG` is an image with the board that has no shot, `shot_1.JPG` is an image with the board that has 1 shot etc.
+- `alignByRefImg.py`: detects and extracts the target board based on its geometric shape.
+- `alignBySquares.py`: Detecting and extracting target board features and interest points using ORB (oriented BRIEF).
+- `sound.py`: runs continuously to take photos and save them to a folder when the sound from the microphone hits a certain threshold. The threshold was set based on multiple experiments with the sounds of the rifle and the surrounding environment.
+- `score.py`: takes an extracted target board image as an input, then detects the shot location and calculates the final score.
 
 ### Detecting the target board by geometric shapes
 ![detecting shapes][shapes]
@@ -68,5 +68,7 @@ python score.py input.jpg
 python score.py test_img_6/aligned_shot_1.jpg
 ```
 
-<!-- ## Improvements
--  -->
+## Improvements
+- **Lens Distortions** - As seen from the mapping photo, slight distortions were present as the circle in the photo is not perfect. That may not be a problem for other object recognition applications, but in this case, any slight distortion could noticeably affect the final score. 
+- **Sound conditions** - no sound filter was present to filter out the environmental sounds, so that the conditions to trigger the photo-taking action could be very sensitive to the surrounding sounds.
+- **Other variances** - lightings and background clutter were carefully controlled in the current testing environment. The detection programme is sensitive to those variances.
