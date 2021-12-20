@@ -1,12 +1,12 @@
 import cv2
 import sys
 import numpy as np
-from matplotlib import pyplot as plt
 
 # reading image
-shotNum = sys.argv[1]
+shotImgPath = sys.argv[1]
+outputImgPath = sys.argv[2]
 
-sourceImage = cv2.imread('test_img_6/shot_{}.JPG'.format(shotNum))
+sourceImage = cv2.imread(sys.argv[1])
 sourceImageCopy = sourceImage.copy()
 
 sourceImage = cv2.GaussianBlur(sourceImage, (5, 5), 0)
@@ -67,11 +67,13 @@ cv2.drawContours(sourceImage, squareContours, 1, (0, 0, 255), 7)
 
 # displaying the image after drawing contours
 cv2.imshow('shapes', sourceImage)
+cv2.imwrite("output/shapes.jpg", sourceImage)
+
 
 
 width, height = 1500, 1500
-sourceCorners = np.array([squareContoursWithCorners[1][1][0][0],squareContoursWithCorners[1][1][1][0], squareContoursWithCorners[1][1][2][0], squareContoursWithCorners[1][1][3][0]])
-targetCorners = np.array([(0,0),(0,height),(width,height),(width,0)])
+sourceCorners = np.array([squareContoursWithCorners[1][1][0][0], squareContoursWithCorners[1][1][1][0], squareContoursWithCorners[1][1][3][0], squareContoursWithCorners[1][1][2][0]])
+targetCorners = np.array([(0,0),(0,height),(width,0),(width,height)])
 
 print(sourceCorners)
 print(targetCorners)
@@ -83,8 +85,8 @@ transformed_image = cv2.warpPerspective(
     sourceImageCopy, H, (height, width))
 
 
-cv2.imwrite("test_img_6/aligned_shot_{}.JPG".format(shotNum), transformed_image)
-cv2.imshow('Aligned Image', transformed_image)
+cv2.imwrite(outputImgPath, transformed_image)
+cv2.imshow(outputImgPath, transformed_image)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()

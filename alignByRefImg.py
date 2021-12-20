@@ -26,6 +26,7 @@ def alignImages(im1, im2):
     matches = matcher.match(descriptors1, descriptors2, None)
 
     # Sort matches by score
+    matches = list(matches)
     matches.sort(key=lambda x: x.distance, reverse=False)
 
     # Remove not so good matches
@@ -35,7 +36,7 @@ def alignImages(im1, im2):
     # Draw top matches
     imMatches = cv2.drawMatches(
         im1, keypoints1, im2, keypoints2, matches, None)
-    cv2.imwrite("matches.jpg", imMatches)
+    cv2.imwrite("output/matches.jpg", imMatches)
     cv2.imshow('matches', imMatches)
 
     # Extract location of good matches
