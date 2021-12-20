@@ -5,13 +5,27 @@
 [display]: output/display_1.jpg 
 [display2]: output/display_2.jpg 
 [center]: output/center_1.jpg 
-[board]: test_img_6/aligned_shot_1.jpg
+[board]: test_img_6/aligned_shot_1.JPG
+
+
+### Requirements
+```
+numpy                             1.21.4
+opencv-python                     4.5.4.60
+scikit-image                      0.19.1
+matplotlib                        3.5.1
+scipy                             1.7.3
+sounddevice                       0.4.3
+imutils                           0.5.4
+```
 
 ### Scripts
 - `alignByRefImg.py`: detecting and extract target board by its geometric shape.
 - `alignBySquares.py`: detecting and extract target board by ORB (oriented BRIEF) features and interest points.
 - `sound.py`: take photo and save it to file when the sound from microphone hit a certain threshold. The threshold was set based on multiple experiments with sounds of rifle and surrounding environment.
 - `score.py`: take extracted target board image as an input then detect the shot location and calculat the final score.
+- `\targetsys`: virtualenv
+- `\board_design`: custom target boards designed for the detecting system
 
 ### Detecting the target board by geometric shapes
 ![detecting shapes][shapes]
@@ -21,7 +35,7 @@
 
 ### Extacted target board
 <!-- ![target board][board] -->
-<img src="test_img_6/aligned_shot_1.jpg" alt="board" width="50%"/>
+<img src="test_img_6/aligned_shot_1.JPG" alt="board" width="50%"/>
 
 ### Processing images
 ![detecting target][center]
