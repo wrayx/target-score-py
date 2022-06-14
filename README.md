@@ -6,6 +6,8 @@
 [display2]: output/display_2.jpg 
 [center]: output/center_1.jpg 
 [board]: test_img_6/aligned_shot_1.JPG
+[board_original]: test_img_6/shot_1.JPG
+[board_design]: board_design/board_5.png
 
 
 ### Requirements
@@ -28,10 +30,16 @@ imutils                           0.5.4
 - `sound.py`: runs continuously to take photos and save them to a folder when the sound from the microphone hits a certain threshold. The threshold was set based on multiple experiments with the sounds of the rifle and the surrounding environment.
 - `score.py`: takes an extracted target board image as an input, then detects the shot location and calculates the final score.
 
+### Printed target
+<img src="board_design/board_5.png" alt="board" width="60%"/>
+
+### Photo taken
+![photo taken][board_original]
+
 ### Detecting the target board by geometric shapes
 ![detecting shapes][shapes]
 
-### Detecting and extracting the target board by SIFT points
+### Detecting and extracting the target board by ORB features
 ![matching reference images][matches]
 
 ### Extacted target board
@@ -71,4 +79,4 @@ python score.py test_img_6/aligned_shot_1.jpg
 ## Improvements
 - **Lens Distortions** - As seen from the mapping photo, slight distortions were present as the circle in the photo is not perfect. That may not be a problem for other object recognition applications, but in this case, any slight distortion could noticeably affect the final score. 
 - **Sound conditions** - no sound filter was present to filter out the environmental sounds, so that the conditions to trigger the photo-taking action could be very sensitive to the surrounding sounds.
-- **Other variances** - lightings and background clutter were carefully controlled in the current testing environment. The detection programme is sensitive to those variances.
+- **Other variances** - lightings, occlusions, background clutter were carefully controlled in the current testing environment. Anything drawn on the board with colors could effect the algorithm performances. The detection programme is very sensitive to those variances.
