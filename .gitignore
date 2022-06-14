@@ -1,4 +1,8 @@
 # Ignore Mac system files
 .DS_store
 
+# environment
 targetsys
+
+# testing data
+test_img*
