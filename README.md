@@ -1,12 +1,12 @@
 # Target Detecting System
 
+Implementation of the target scoring system in Python, an revised implementation in C++ can be found here: [C++ Implementation](https://github.com/wrayx/target-score-c++/). The project utilise the OpenCV libarary and some python native libraries. Below are the packege requirements output from the pip package manager at the time of developing the project.
+
 [matches]: output/matches_1.jpg 
 [shapes]: output/shapes_1.jpg 
 [display]: output/display_1.jpg 
 [display2]: output/display_2.jpg 
 [center]: output/center_1.jpg 
-[board]: test_img_6/aligned_shot_1.JPG
-[board_original]: test_img_6/shot_1.JPG
 [board_design]: board_design/board_5.png
 
 
@@ -33,18 +33,11 @@ imutils                           0.5.4
 ### Printed target
 <img src="board_design/board_5.png" alt="board" width="60%"/>
 
-### Photo taken
-![photo taken][board_original]
-
 ### Detecting the target board by geometric shapes
 ![detecting shapes][shapes]
 
 ### Detecting and extracting the target board by ORB features
 ![matching reference images][matches]
-
-### Extacted target board
-<!-- ![target board][board] -->
-<img src="test_img_6/aligned_shot_1.JPG" alt="board" width="50%"/>
 
 ### Processing images
 ![detecting target][center]
