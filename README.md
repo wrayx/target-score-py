@@ -1,6 +1,6 @@
-# Target Detecting System
+# Target Scoring System
 
-Implementation of the target scoring system in Python, an revised implementation in C++ can be found here: [C++ Implementation](https://github.com/wrayx/target-score-c++/). The project utilise the OpenCV libarary and some python native libraries. Below are the packege requirements output from the pip package manager at the time of developing the project.
+Implementation of the target scoring system in Python, an revised implementation in C++ can be found here: [C++ Project Implementation](https://github.com/wrayx/target-score-c++/). The project utilise the OpenCV libarary and some python native libraries. Below are the packege requirements output from the pip package manager at the time of developing the project.
 
 [matches]: output/matches_1.jpg 
 [shapes]: output/shapes_1.jpg 
